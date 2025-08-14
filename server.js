@@ -1,7 +1,8 @@
 const express = require('express');
 const admin = require('firebase-admin');
 
-// Correctly handle the private key with escaped newlines
+// IMPORTANT: The private key string needs to be correctly formatted for JSON.
+// We replace escaped newlines with actual newline characters.
 const serviceAccountKeyString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.replace(/\\n/g, '\n');
 const serviceAccount = JSON.parse(serviceAccountKeyString);
 
@@ -16,6 +17,19 @@ const app = express();
 app.use(express.json());
 
 app.post('/validate-key', async (req, res) => {
+  // Add CORS headers to allow requests from your website
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ status: 'error', message: 'Method Not Allowed' });
+  }
+
   const { key, hwid } = req.body;
 
   if (!key || !hwid) {
