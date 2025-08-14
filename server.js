@@ -1,10 +1,12 @@
 const express = require('express');
 const admin = require('firebase-admin');
+const cors = require('cors');
 
 // IMPORTANT: The private key string needs to be correctly formatted for JSON.
-// We replace escaped newlines with actual newline characters.
-const serviceAccountKeyString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.replace(/\\n/g, '\n');
-const serviceAccount = JSON.parse(serviceAccountKeyString);
+const serviceAccountKeyString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+// Correctly format the private key string by replacing escaped newlines with actual ones.
+const serviceAccount = JSON.parse(serviceAccountKeyString.replace(/\\n/g, '\n'));
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -15,19 +17,11 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post('/validate-key', async (req, res) => {
-  // Add CORS headers to allow requests from your website
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ status: 'error', message: 'Method Not Allowed' });
   }
 
   const { key, hwid } = req.body;
