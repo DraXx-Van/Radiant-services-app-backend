@@ -1,7 +1,9 @@
 const express = require('express');
 const admin = require('firebase-admin');
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+// Correctly handle the private key with escaped newlines
+const serviceAccountKeyString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.replace(/\\n/g, '\n');
+const serviceAccount = JSON.parse(serviceAccountKeyString);
 
 if (!admin.apps.length) {
   admin.initializeApp({
